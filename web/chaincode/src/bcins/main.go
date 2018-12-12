@@ -32,8 +32,9 @@ var bcFunctions = map[string]func(shim.ChaincodeStubInterface, []string) pb.Resp
 	"user_authenticate":        authUser,
 	"user_get_info":            getUser,
 	// Shop Peer
-	"contract_create": createContract,
-	"user_create":     createUser,
+	"contract_create":  createContract,
+	"user_create":      createUser,
+	"shop_contract_ls": listShopContracts,
 	// Repair Shop Peer
 	"repair_order_ls":       listRepairOrders,
 	"repair_order_complete": completeRepairOrder,
@@ -51,6 +52,9 @@ func (t *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
 			UUID string `json:"uuid"`
 			*contractType
 		}
+
+		logger.Infof("Init, args[0]: %+v\n", args[0])
+
 		err := json.Unmarshal([]byte(args[0]), &contractTypes)
 		if err != nil {
 			return shim.Error(err.Error())
@@ -60,6 +64,9 @@ func (t *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
 			if err != nil {
 				return shim.Error(err.Error())
 			}
+
+			logger.Infof("Init, ct.contractType: %+v\n", ct.contractType)
+
 			contractTypeAsBytes, err := json.Marshal(ct.contractType)
 			if err != nil {
 				return shim.Error(err.Error())

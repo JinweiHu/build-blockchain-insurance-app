@@ -5,22 +5,24 @@ import (
 	"time"
 
 	"errors"
-	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"strings"
+
+	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
 // Key consists of prefix + UUID of the contract type
 type contractType struct {
-	ShopType        string  `json:"shop_type"`
-	FormulaPerDay   string  `json:"formula_per_day"`
-	MaxSumInsured   float32 `json:"max_sum_insured"`
-	TheftInsured    bool    `json:"theft_insured"`
-	Description     string  `json:"description"`
-	Conditions      string  `json:"conditions"`
-	Active          bool    `json:"active"`
-	MinDurationDays int32   `json:"min_duration_days"`
-	MaxDurationDays int32   `json:"max_duration_days"`
-	Discount        float32 `json:"discount"`
+	ShopType             string  `json:"shop_type"`
+	FormulaPerDay        string  `json:"formula_per_day"`
+	MaxSumInsured        float32 `json:"max_sum_insured"`
+	TheftInsured         bool    `json:"theft_insured"`
+	Description          string  `json:"description"`
+	Conditions           string  `json:"conditions"`
+	Active               bool    `json:"active"`
+	MinDurationDays      int32   `json:"min_duration_days"`
+	MaxDurationDays      int32   `json:"max_duration_days"`
+	Discount             float32 `json:"discount"`
+	DiscountFollowingBuy float32 `json:"discount_following_buy"`
 }
 
 // Key consists of prefix + username + UUID of the contract
@@ -32,6 +34,7 @@ type contract struct {
 	Void             bool      `json:"void"`
 	ContractTypeUUID string    `json:"contract_type_uuid"`
 	ClaimIndex       []string  `json:"claim_index,omitempty"`
+	SpecialRate      float32   `json:"specialRate"`
 }
 
 // Entity not persisted on its own
@@ -138,6 +141,7 @@ type repairOrder struct {
 	Ready        bool   `json:"ready"`
 }
 
+// TODO is "Contacts" here a typo? Should it be "Contracts"?
 func (u *user) Contacts(stub shim.ChaincodeStubInterface) []contract {
 	contracts := make([]contract, 0)
 

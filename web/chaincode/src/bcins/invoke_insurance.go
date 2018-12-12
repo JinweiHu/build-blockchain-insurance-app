@@ -59,6 +59,8 @@ func listContractTypes(stub shim.ChaincodeStubInterface, args []string) pb.Respo
 			(strings.Contains(strings.ToTitle(ct.ShopType), strings.ToTitle(input.ShopType)) && ct.Active) {
 			results = append(results, ct)
 		}
+
+		logger.Infof("listContractTypes, type: %+v\n", *(ct.contractType))
 	}
 
 	returnBytes, err := json.Marshal(results)

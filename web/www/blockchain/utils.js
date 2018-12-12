@@ -228,6 +228,9 @@ export class OrganizationClient extends EventEmitter {
   async instantiate(chaincodeId, chaincodeVersion, ...args) {
     let proposalResponses, proposal;
     const txId = this._client.newTransactionID();
+
+    console.log(`instantiate, before marshal args ${args}`);
+
     try {
       const request = {
         chaincodeType: 'golang',
@@ -237,6 +240,9 @@ export class OrganizationClient extends EventEmitter {
         args: marshalArgs(args),
         txId
       };
+
+      console.log(`instantiate, after marshal args ${args}`);
+
       const results = await this._channel.sendInstantiateProposal(request);
       proposalResponses = results[0];
       proposal = results[1];

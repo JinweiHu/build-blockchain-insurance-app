@@ -151,6 +151,9 @@ class ChooseInsurancePage extends React.Component {
       );
     }
 
+
+    const specialInsuranceRateMsg = contractType.discountFollowingBuy ? <FormattedMessage id={`Special rate at ${contractType.discountFollowingBuy * 100} % on the 2nd purchase`} /> : null;
+
     return (
       <Loading hidden={contractsLoaded}
         text={intl.formatMessage({ id: 'Loading Contracts...' })}>
@@ -183,6 +186,9 @@ class ChooseInsurancePage extends React.Component {
                           minimumFractionDigits: 2
                         })} />
                   </span>
+
+                  {specialInsuranceRateMsg}
+                  
                 </p>
                 <p className='ibm-form-elem-grp'>
                   <label><FormattedMessage className='ibm-field-label'

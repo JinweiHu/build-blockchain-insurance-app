@@ -18,6 +18,25 @@ export async function getContractTypes(shopType) {
   }
 }
 
+// Alternative: getContractsOfMyShop(shopId) which returns only the contracts that are signed through my shops!
+// In invoke_shop.go there should be corresponding method for returning right contracts.
+
+export async function getContracts(username) {
+  if(!isReady()) {
+    return;
+  }
+  // omit validations of username
+  try {
+    if (typeof username !== 'string') {
+      username = undefined;
+    }
+    const contracts = await query( 'shop_contract_ls', { username });
+    return contracts;
+  } catch (e) {
+    throw wrapError(`Error getting contracts for ${username}: ${e.message}`, e);
+  }
+}
+
 export async function createContract(contract) {
   if (!isReady()) {
     return;
@@ -25,6 +44,9 @@ export async function createContract(contract) {
   try {
     let c = Object.assign({}, contract, { uuid: uuidV4() });
     const loginInfo = await invoke('contract_create', c);
+
+    console.log('shopPeer.createContract c' + JSON.stringify(c));
+    
     if (!loginInfo
       ^ !!(loginInfo && loginInfo.username && loginInfo.password)) {
       return Object.assign(loginInfo || {}, { uuid: c.uuid });

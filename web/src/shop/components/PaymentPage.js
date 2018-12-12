@@ -11,7 +11,7 @@ import moment from 'moment';
 import Loading from '../../shared/Loading';
 import * as paymentActions from '../actions/paymentActions';
 import * as userMgmtActions from '../actions/userMgmtActions';
-import { enterContract } from '../api';
+import { getContracts, enterContract } from '../api';
 
 class PaymentPage extends React.Component {
 
@@ -32,9 +32,10 @@ class PaymentPage extends React.Component {
     super(props);
 
     this.inTransaction = false;
-    this.state = { loading: false };
+    this.state = { loading: false, existingContracts: [] };
     this.order = this.order.bind(this);
     this.executeTransaction = this.executeTransaction.bind(this);
+    this.getDiscountFollowingBuy = this.getDiscountFollowingBuy.bind(this);
   }
 
   order() {
@@ -43,6 +44,16 @@ class PaymentPage extends React.Component {
       await this.executeTransaction();
       this.setState({ redirectToNext: true });
     });
+  }
+
+  async componentDidMount() {
+    const { email, firstName, lastName, discountFollowingBuy } = this.props.contractInfo;
+    if( discountFollowingBuy ) {
+      const user = { username: email, firstName, lastName };
+      const existingContracts = await getContracts(user);
+      this.setState({ existingContracts });
+      console.log(`existing Contracts of ${user.username}: ${JSON.stringify(existingContracts)}`);
+    }
   }
 
   async executeTransaction() {
@@ -63,13 +74,23 @@ class PaymentPage extends React.Component {
         description: productInfo.description
       },
       startDate: new Date(contractInfo.startDate),
-      endDate: new Date(contractInfo.endDate)
+      endDate: new Date(contractInfo.endDate),
+      specialRate: getSpecialRate(productInfo, contractInfo, this.getDiscountFollowingBuy()) 
     });
+
+    console.log(`getDiscountFollowingBuy ${this.getDiscountFollowingBuy()}`);
+
     userMgmtActions.setUser({
       firstName, lastName,
       username: email, password: loginInfo.password
     });
     this.inTransaction = false;
+  }
+
+  getDiscountFollowingBuy() {
+    const existingContracts = this.state.existingContracts;
+    const discountFollowingBuy = this.props.contractInfo.discountFollowingBuy;
+    return (discountFollowingBuy && Array.isArray(existingContracts) && existingContracts.length > 0) ? discountFollowingBuy : 1;
   }
 
   render() {
@@ -78,13 +99,18 @@ class PaymentPage extends React.Component {
     const { intl, productInfo, contractInfo } = this.props;
     const { redirectToNext } = this.state;
 
-    const startDate = moment(new Date(contractInfo.startDate));
-    const endDate = moment(new Date(contractInfo.endDate));
-    const dateDiff = moment.duration(endDate.diff(startDate)).asDays();
+    const insurancePrice = getInsurancePrice(productInfo, contractInfo);
+    const total = getTotal(productInfo, contractInfo); 
+    const specialRate = getSpecialRate(productInfo, contractInfo, this.getDiscountFollowingBuy());
 
-    const insurancePrice = dateDiff * (
-      contractInfo.formulaPerDay(productInfo.price)) * (contractInfo.discount || 1);
-    const total = productInfo.price + insurancePrice;
+    const specialRateMsg = ( specialRate < total ) ? (
+      <h3>
+        Speical Rate: 
+        <FormattedNumber style='currency'
+          currency={intl.formatMessage({ id: 'currency code' })}
+          value={specialRate} minimumFractionDigits={2} />
+      </h3> 
+    ) : null;
 
     if (redirectToNext) {
       return (
@@ -171,6 +197,9 @@ class PaymentPage extends React.Component {
                   </tr>
                 </tbody>
               </table>
+
+              {specialRateMsg}
+              
             </div>
           </div>
           <div className='ibm-columns'>
@@ -204,3 +233,19 @@ function mapDispatchToProps(dispatch) {
 
 export default withRouter(
   connect(mapStateToProps, mapDispatchToProps)(injectIntl(PaymentPage)));
+
+function getInsurancePrice(productInfo, contractInfo) {
+  const startDate = moment(new Date(contractInfo.startDate));
+  const endDate = moment(new Date(contractInfo.endDate));
+  const dateDiff = moment.duration(endDate.diff(startDate)).asDays()
+  return dateDiff * (
+    contractInfo.formulaPerDay(productInfo.price)) * (contractInfo.discount || 1);
+}
+
+function getTotal (productInfo, contractInfo) {
+  return productInfo.price + getInsurancePrice(productInfo, contractInfo);
+}
+
+function getSpecialRate(productInfo, contractInfo, discountFollowingBuy) {
+  return productInfo.price + getInsurancePrice(productInfo, contractInfo) * discountFollowingBuy;
+}

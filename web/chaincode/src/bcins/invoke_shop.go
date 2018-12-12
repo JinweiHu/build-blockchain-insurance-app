@@ -24,12 +24,16 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		Item             item      `json:"item"`
 		StartDate        time.Time `json:"start_date"`
 		EndDate          time.Time `json:"end_date"`
+		// why does it not work when using `json:"specialRate"` ?!
+		SpecialRate float32 `json:"special_rate"`
 	}{}
 
 	err := json.Unmarshal([]byte(args[0]), &dto)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
+
+	logger.Infof("createContract, dto: %+v\n", dto)
 
 	// Create new user if necessary
 	var u user
@@ -79,9 +83,12 @@ func createContract(stub shim.ChaincodeStubInterface, args []string) pb.Response
 		Item:             dto.Item,
 		StartDate:        dto.StartDate,
 		EndDate:          dto.EndDate,
+		SpecialRate:      dto.SpecialRate,
 		Void:             false,
 		ClaimIndex:       []string{},
 	}
+
+	logger.Infof("createContract, contract: %+v\n", contract)
 
 	contractKey, err := stub.CreateCompositeKey(prefixContract, []string{dto.Username, dto.UUID})
 	if err != nil {
@@ -169,4 +176,61 @@ func createUser(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	}
 	// Return the username and the password of the already existing user
 	return shim.Success(userResponseAsBytes)
+}
+
+func listShopContracts(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	input := struct {
+		Username string `json:"username"`
+	}{}
+	if len(args) == 1 {
+		err := json.Unmarshal([]byte(args[0]), &input)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+	}
+
+	var resultsIterator shim.StateQueryIteratorInterface
+	var err error
+	resultsIterator, err = stub.GetStateByPartialCompositeKey(prefixContract, []string{input.Username})
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	defer resultsIterator.Close()
+
+	results := []interface{}{}
+	// Iterate over the results
+	for resultsIterator.HasNext() {
+		kvResult, err := resultsIterator.Next()
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		// Construct response struct
+		result := struct {
+			UUID string `json:"uuid"`
+			*contract
+			Claims []claim `json:"claims,omitempty"`
+		}{}
+
+		err = json.Unmarshal(kvResult.Value, &result)
+		if err != nil {
+			return shim.Error(err.Error())
+		}
+
+		// Fetch key
+		prefix, keyParts, err := stub.SplitCompositeKey(kvResult.Key)
+		if len(keyParts) == 2 {
+			result.UUID = keyParts[1]
+		} else {
+			result.UUID = prefix
+		}
+
+		results = append(results, result)
+	}
+
+	resultsAsBytes, err := json.Marshal(results)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	return shim.Success(resultsAsBytes)
 }

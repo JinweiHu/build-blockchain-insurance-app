@@ -142,7 +142,8 @@ export const DEFAULT_CONTRACT_TYPES = [
     minDurationDays: 5,
     maxDurationDays: 10,
     active: true,
-    discount: 0.5
+    discount: 0.5,
+    discountFollowingBuy: 0.1
   },
   {
     uuid: '17d773dc-2624-4c22-a478-87544dd0a17f',
@@ -166,7 +167,8 @@ export const DEFAULT_CONTRACT_TYPES = [
     conditions: 'Simple contract terms here.',
     minDurationDays: 3,
     maxDurationDays: 25,
-    active: true
+    active: true,
+    discountFollowingBuy: 0.1
   },
   {
     uuid: 'dcee27d7-bf3c-4995-a272-8a306a35e51f',
@@ -178,7 +180,8 @@ export const DEFAULT_CONTRACT_TYPES = [
     conditions: 'Just do it.',
     minDurationDays: 1,
     maxDurationDays: 15,
-    active: true
+    active: true,
+    discountFollowingBuy: 0.2
   },
   {
     uuid: 'c06f95d6-9b90-4d24-b8cb-f347d1b33ddf',

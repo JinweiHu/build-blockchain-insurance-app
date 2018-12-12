@@ -53,6 +53,24 @@ router.post('/api/contract-types', async (req, res) => {
     }));
 });
 
+router.post('/api/contracts', async (req, res) => {
+  if (typeof req.body.user !== 'object') {
+    res.json({ error: 'Invalid request!' });
+    return;
+  }
+  try {
+    const { username, password } = req.body.user;
+    // omit user authentication check
+    const contracts = await ShopPeer.getContracts(username);
+    res.json({ success: true, contracts });
+    return;
+  } catch (e) {
+    console.log(e);
+    res.json({ error: 'Error accessing blockchain!' });
+    return;
+  }
+})
+
 router.post('/api/request-user', async (req, res) => {
   let { user } = req.body;
   let { firstName, lastName, email } = user || {};
@@ -95,7 +113,8 @@ router.post('/api/enter-contract', async (req, res) => {
         lastName,
         item: additionalInfo.item,
         startDate: additionalInfo.startDate,
-        endDate: additionalInfo.endDate
+        endDate: additionalInfo.endDate,
+        specialRate: additionalInfo.specialRate
       });
       res.json({ success: 'Contract signed.', loginInfo });
     } catch (e) {
