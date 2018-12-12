@@ -20,6 +20,7 @@ type contractType struct {
 	Active          bool    `json:"active"`
 	MinDurationDays int32   `json:"min_duration_days"`
 	MaxDurationDays int32   `json:"max_duration_days"`
+	Discount        float32 `json:"discount"`
 }
 
 // Key consists of prefix + username + UUID of the contract

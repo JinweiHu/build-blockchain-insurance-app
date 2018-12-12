@@ -83,7 +83,7 @@ class PaymentPage extends React.Component {
     const dateDiff = moment.duration(endDate.diff(startDate)).asDays();
 
     const insurancePrice = dateDiff * (
-      contractInfo.formulaPerDay(productInfo.price));
+      contractInfo.formulaPerDay(productInfo.price)) * (contractInfo.discount || 1);
     const total = productInfo.price + insurancePrice;
 
     if (redirectToNext) {

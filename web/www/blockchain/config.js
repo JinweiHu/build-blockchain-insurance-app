@@ -141,7 +141,8 @@ export const DEFAULT_CONTRACT_TYPES = [
     conditions: 'Exemplary contract terms here.',
     minDurationDays: 5,
     maxDurationDays: 10,
-    active: true
+    active: true,
+    discount: 0.5
   },
   {
     uuid: '17d773dc-2624-4c22-a478-87544dd0a17f',

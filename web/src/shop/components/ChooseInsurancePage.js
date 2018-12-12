@@ -80,7 +80,7 @@ class ChooseInsurancePage extends React.Component {
     this.setState(Object.assign({}, this.state,
       {
         contractType,
-        dailyPrice: contractType.formulaPerDay(this.props.productInfo.price)
+        dailyPrice: contractType.formulaPerDay(this.props.productInfo.price) * (contractType.discount || 1)
       }));
   }
 
